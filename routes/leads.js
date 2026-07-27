@@ -1,6 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'insurance_policy_docs',
+    allowed_formats: ['pdf'],
+    resource_type: 'raw'
+  }
+});
+
+const upload = multer({ storage: storage });
 
 // GET /api/leads?type=health
 router.get('/', async (req, res) => {
@@ -73,6 +93,32 @@ router.put('/:id/status', async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     console.error('Error updating lead status:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/leads/:id/document
+router.post('/:id/document', upload.single('document'), async (req, res) => {
+  const { id } = req.params;
+  
+  if (!req.file) {
+    return res.status(400).json({ error: 'No document uploaded' });
+  }
+
+  try {
+    const documentUrl = req.file.path;
+    const result = await db.query(
+      'UPDATE leads SET policy_document_url = $1 WHERE id = $2 RETURNING *',
+      [documentUrl, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error uploading document:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

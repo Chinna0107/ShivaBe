@@ -140,6 +140,22 @@ async function initializeDB() {
     `);
     console.log("quote_requests table created or already exists.");
 
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS premium_requests (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        age VARCHAR(20) NOT NULL,
+        cover_amount VARCHAR(50) NOT NULL,
+        gender VARCHAR(20) NOT NULL,
+        phone VARCHAR(20) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        policy_name VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'Pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("premium_requests table created or already exists.");
+
   } catch (err) {
     console.error('Error initializing database:', err);
   } finally {
