@@ -22,6 +22,19 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage: storage });
 
+// GET /api/leads/check?phone=
+router.get('/check', async (req, res) => {
+  const { phone } = req.query;
+  if (!phone) return res.status(400).json({ error: 'phone is required' });
+  try {
+    const result = await db.query('SELECT id FROM leads WHERE phone = $1 LIMIT 1', [phone]);
+    res.json({ exists: result.rows.length > 0 });
+  } catch (err) {
+    console.error('Error checking lead:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // GET /api/leads?type=health
 router.get('/', async (req, res) => {
   const { type } = req.query;

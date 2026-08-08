@@ -77,11 +77,16 @@ async function initializeDB() {
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         phone VARCHAR(50) NOT NULL,
-        email VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
         preferred_time VARCHAR(100) NOT NULL,
+        notes TEXT,
         status VARCHAR(50) DEFAULT 'Pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+    // Migration: add notes column if it doesn't exist on older DBs
+    await db.query(`
+      ALTER TABLE call_requests ADD COLUMN IF NOT EXISTS notes TEXT
     `);
     console.log("call_requests table created or already exists.");
 

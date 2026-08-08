@@ -190,7 +190,25 @@ router.post('/verify', async (req, res) => {
   }
 });
 
-// 3. Get all call requests (Admin/Employee)
+// Direct submit (no OTP)
+router.post('/', async (req, res) => {
+  try {
+    const { name, phone, email, preferredTime, notes } = req.body;
+    if (!name || !phone) return res.status(400).json({ error: 'Name and phone are required' });
+    const result = await db.query(
+      'INSERT INTO call_requests (name, phone, email, preferred_time, notes) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [name, phone, email || null, preferredTime || 'Anytime', notes || null]
+    );
+    const io = req.app.get('io');
+    if (io) io.emit('new-call-request', result.rows[0]);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error creating call request:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get all call requests (Admin/Employee)
 router.get('/', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM call_requests ORDER BY created_at DESC');

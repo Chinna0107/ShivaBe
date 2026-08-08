@@ -21,10 +21,16 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage: storage });
 
-// Get all policies
+// Get all policies (optional ?type= filter)
 router.get('/', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM policies ORDER BY created_at DESC');
+    const { type } = req.query;
+    let result;
+    if (type) {
+      result = await db.query('SELECT * FROM policies WHERE type = $1 ORDER BY created_at DESC', [type]);
+    } else {
+      result = await db.query('SELECT * FROM policies ORDER BY created_at DESC');
+    }
     res.json(result.rows);
   } catch (err) {
     console.error('Error fetching policies:', err);
