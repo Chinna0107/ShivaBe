@@ -31,6 +31,9 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/best-plans', require('./routes/bestPlans'));
 app.use('/api/quotes', require('./routes/quotes'));
 app.use('/api/premium-requests', require('./routes/premiumRequests'));
+app.use('/api/gallery', require('./routes/gallery'));
+app.use('/api/reels', require('./routes/reels'));
+app.use('/api/careers', require('./routes/careers'));
 
 // Basic health check route
 app.get('/', (req, res) => {

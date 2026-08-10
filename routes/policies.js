@@ -19,18 +19,36 @@ const storage = new CloudinaryStorage({
   }
 });
 
-const upload = multer({ storage: storage });
+const pdfStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'insurance_policy_pdfs',
+    allowed_formats: ['pdf'],
+    resource_type: 'raw'
+  }
+});
 
-// Get all policies (optional ?type= filter)
+const upload = multer({ storage: storage });
+const uploadPdf = multer({ storage: pdfStorage });
+
+// Get all policies (optional ?type= and ?provider= filters)
 router.get('/', async (req, res) => {
   try {
-    const { type } = req.query;
-    let result;
-    if (type) {
-      result = await db.query('SELECT * FROM policies WHERE type = $1 ORDER BY created_at DESC', [type]);
-    } else {
-      result = await db.query('SELECT * FROM policies ORDER BY created_at DESC');
+    const { type, provider } = req.query;
+    let query = 'SELECT * FROM policies';
+    const params = [];
+    if (type && provider) {
+      query += ' WHERE type = $1 AND provider = $2';
+      params.push(type, provider);
+    } else if (type) {
+      query += ' WHERE type = $1';
+      params.push(type);
+    } else if (provider) {
+      query += ' WHERE provider = $1';
+      params.push(provider);
     }
+    query += ' ORDER BY created_at DESC';
+    const result = await db.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error('Error fetching policies:', err);
@@ -60,9 +78,7 @@ router.post('/', upload.array('images', 50), async (req, res) => {
     if (!name || !type || !provider) {
       return res.status(400).json({ error: 'Name, type, and provider are required' });
     }
-
     const imageUrls = req.files ? req.files.map(file => file.path) : [];
-
     const result = await db.query(
       'INSERT INTO policies (name, type, provider, description, cover_amount, pros, cons, images) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
       [name, type, provider, description, cover_amount, pros, cons, JSON.stringify(imageUrls)]
@@ -70,6 +86,24 @@ router.post('/', upload.array('images', 50), async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('Error creating policy:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Upload PDF for a policy
+router.post('/:id/pdf', uploadPdf.single('pdf'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!req.file) return res.status(400).json({ error: 'No PDF file provided' });
+    const pdfUrl = req.file.path;
+    const result = await db.query(
+      'UPDATE policies SET pdf_url = $1 WHERE id = $2 RETURNING *',
+      [pdfUrl, id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Policy not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error uploading PDF:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -101,9 +101,11 @@ async function initializeDB() {
         pros TEXT,
         cons TEXT,
         images JSONB DEFAULT '[]'::jsonb,
+        pdf_url TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    await db.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS pdf_url TEXT`);
     console.log("policies table created or already exists.");
 
     await db.query(`
@@ -160,6 +162,17 @@ async function initializeDB() {
       )
     `);
     console.log("premium_requests table created or already exists.");
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS gallery (
+        id SERIAL PRIMARY KEY,
+        image_url TEXT NOT NULL,
+        category VARCHAR(100) NOT NULL,
+        caption TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('gallery table created or already exists.');
 
   } catch (err) {
     console.error('Error initializing database:', err);
