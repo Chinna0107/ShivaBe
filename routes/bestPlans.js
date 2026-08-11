@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
 // POST a new best plan
 router.post('/', async (req, res) => {
   try {
-    const { category, rank, name, badge, premium, cover, claim_ratio, highlight } = req.body;
+    const { category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type, insurer_type } = req.body;
     
     // Basic validation
     if (!category || !rank || !name) {
@@ -36,10 +36,10 @@ router.post('/', async (req, res) => {
 
     const result = await db.query(
       `INSERT INTO best_plans 
-        (category, rank, name, badge, premium, cover, claim_ratio, highlight) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+        (category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type, insurer_type) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
        RETURNING *`,
-      [category, rank, name, badge, premium, cover, claim_ratio, highlight]
+      [category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type || 'Individual', insurer_type || 'Private']
     );
     
     res.status(201).json(result.rows[0]);
@@ -53,14 +53,14 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { category, rank, name, badge, premium, cover, claim_ratio, highlight } = req.body;
+    const { category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type, insurer_type } = req.body;
 
     const result = await db.query(
       `UPDATE best_plans 
-       SET category = $1, rank = $2, name = $3, badge = $4, premium = $5, cover = $6, claim_ratio = $7, highlight = $8
-       WHERE id = $9 
+       SET category = $1, rank = $2, name = $3, badge = $4, premium = $5, cover = $6, claim_ratio = $7, highlight = $8, plan_type = $9, insurer_type = $10
+       WHERE id = $11 
        RETURNING *`,
-      [category, rank, name, badge, premium, cover, claim_ratio, highlight, id]
+      [category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type || 'Individual', insurer_type || 'Private', id]
     );
 
     if (result.rows.length === 0) {

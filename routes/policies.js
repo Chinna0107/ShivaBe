@@ -74,14 +74,14 @@ router.get('/:id', async (req, res) => {
 // Create a new policy
 router.post('/', upload.array('images', 50), async (req, res) => {
   try {
-    const { name, type, provider, description, cover_amount, pros, cons } = req.body;
+    const { name, type, provider, description, cover_amount, pros, cons, plan_type, insurer_type } = req.body;
     if (!name || !type || !provider) {
       return res.status(400).json({ error: 'Name, type, and provider are required' });
     }
     const imageUrls = req.files ? req.files.map(file => file.path) : [];
     const result = await db.query(
-      'INSERT INTO policies (name, type, provider, description, cover_amount, pros, cons, images) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-      [name, type, provider, description, cover_amount, pros, cons, JSON.stringify(imageUrls)]
+      'INSERT INTO policies (name, type, provider, description, cover_amount, pros, cons, images, plan_type, insurer_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+      [name, type, provider, description, cover_amount, pros, cons, JSON.stringify(imageUrls), plan_type || 'Individual', insurer_type || 'Private']
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -112,7 +112,7 @@ router.post('/:id/pdf', uploadPdf.single('pdf'), async (req, res) => {
 router.put('/:id', upload.array('images', 50), async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, type, provider, description, cover_amount, pros, cons } = req.body;
+    const { name, type, provider, description, cover_amount, pros, cons, plan_type, insurer_type } = req.body;
     
     if (!name || !type || !provider) {
       return res.status(400).json({ error: 'Name, type, and provider are required' });
@@ -123,13 +123,13 @@ router.put('/:id', upload.array('images', 50), async (req, res) => {
     let result;
     if (newImageUrls.length > 0) {
       result = await db.query(
-        'UPDATE policies SET name = $1, type = $2, provider = $3, description = $4, cover_amount = $5, pros = $6, cons = $7, images = $8 WHERE id = $9 RETURNING *',
-        [name, type, provider, description, cover_amount, pros, cons, JSON.stringify(newImageUrls), id]
+        'UPDATE policies SET name = $1, type = $2, provider = $3, description = $4, cover_amount = $5, pros = $6, cons = $7, images = $8, plan_type = $9, insurer_type = $10 WHERE id = $11 RETURNING *',
+        [name, type, provider, description, cover_amount, pros, cons, JSON.stringify(newImageUrls), plan_type || 'Individual', insurer_type || 'Private', id]
       );
     } else {
       result = await db.query(
-        'UPDATE policies SET name = $1, type = $2, provider = $3, description = $4, cover_amount = $5, pros = $6, cons = $7 WHERE id = $8 RETURNING *',
-        [name, type, provider, description, cover_amount, pros, cons, id]
+        'UPDATE policies SET name = $1, type = $2, provider = $3, description = $4, cover_amount = $5, pros = $6, cons = $7, plan_type = $8, insurer_type = $9 WHERE id = $10 RETURNING *',
+        [name, type, provider, description, cover_amount, pros, cons, plan_type || 'Individual', insurer_type || 'Private', id]
       );
     }
 
