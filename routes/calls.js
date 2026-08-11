@@ -241,4 +241,26 @@ router.put('/:id/status', async (req, res) => {
   }
 });
 
+// Update reminder
+router.put('/:id/reminder', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reminder } = req.body;
+    
+    const result = await db.query(
+      'UPDATE call_requests SET reminder = $1 WHERE id = $2 RETURNING *',
+      [reminder, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Call request not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating call request reminder:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;

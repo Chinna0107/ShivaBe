@@ -14,7 +14,8 @@ async function migrate() {
       ADD COLUMN IF NOT EXISTS employment_type VARCHAR(100),
       ADD COLUMN IF NOT EXISTS annual_income VARCHAR(100),
       ADD COLUMN IF NOT EXISTS education VARCHAR(100),
-      ADD COLUMN IF NOT EXISTS smoker VARCHAR(20)
+      ADD COLUMN IF NOT EXISTS smoker VARCHAR(20),
+      ADD COLUMN IF NOT EXISTS members TEXT
     `;
     
     await db.query(query);

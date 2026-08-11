@@ -60,4 +60,26 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// PUT update reminder
+router.put('/:id/reminder', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reminder } = req.body;
+
+    const result = await db.query(
+      'UPDATE quote_requests SET reminder = $1 WHERE id = $2 RETURNING *',
+      [reminder, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Quote request not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

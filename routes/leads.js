@@ -60,16 +60,16 @@ router.get('/', async (req, res) => {
 
 // POST /api/leads
 router.post('/', async (req, res) => {
-  const { name, phone, email, date, type, gender, specificPlan, location, employmentType, annualIncome, education, smoker } = req.body;
+  const { name, phone, email, date, type, gender, specificPlan, location, employmentType, annualIncome, education, smoker, members } = req.body;
   if (!name || !phone || !email || !date || !type) {
     return res.status(400).json({ error: 'Core fields (name, phone, email, date, type) are required' });
   }
   try {
     const result = await db.query(
       `INSERT INTO leads 
-       (name, phone, email, date, type, gender, specific_plan, location, employment_type, annual_income, education, smoker) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
-      [name, phone, email, date, type, gender, specificPlan, location, employmentType, annualIncome, education, smoker]
+       (name, phone, email, date, type, gender, specific_plan, location, employment_type, annual_income, education, smoker, members) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+      [name, phone, email, date, type, gender, specificPlan, location, employmentType, annualIncome, education, smoker, Array.isArray(members) ? members.join(', ') : members]
     );
     
     // Emit real-time event to dashboards
