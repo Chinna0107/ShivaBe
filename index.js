@@ -34,6 +34,7 @@ app.use('/api/premium-requests', require('./routes/premiumRequests'));
 app.use('/api/gallery', require('./routes/gallery'));
 app.use('/api/reels', require('./routes/reels'));
 app.use('/api/careers', require('./routes/careers'));
+app.use('/api/claim-ratios', require('./routes/claimRatios'));
 
 // Basic health check route
 app.get('/', (req, res) => {
