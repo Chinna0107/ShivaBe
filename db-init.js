@@ -106,6 +106,7 @@ async function initializeDB() {
       )
     `);
     await db.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS pdf_url TEXT`);
+    await db.query(`ALTER TABLE policies ADD COLUMN IF NOT EXISTS policy_link TEXT`);
     console.log("policies table created or already exists.");
 
     await db.query(`
