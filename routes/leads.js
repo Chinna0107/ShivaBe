@@ -60,16 +60,16 @@ router.get('/', async (req, res) => {
 
 // POST /api/leads
 router.post('/', async (req, res) => {
-  const { name, phone, email, date, type, gender, specificPlan, location, employmentType, annualIncome, education, smoker, members, vehicleNumber, vehicleType, vehicleManufacturer, vehicleModel, vehicleFuelType, vehicleCondition, vehicleRegDate, vehiclePincode } = req.body;
+  const { name, phone, email, date, type, gender, specificPlan, location, employmentType, annualIncome, education, smoker, medicalHistory, lifeCover, members, vehicleNumber, vehicleType, vehicleManufacturer, vehicleModel, vehicleFuelType, vehicleCondition, vehicleRegDate, vehiclePincode } = req.body;
   if (!name || !phone || !email || !date || !type) {
     return res.status(400).json({ error: 'Core fields (name, phone, email, date, type) are required' });
   }
   try {
     const result = await db.query(
       `INSERT INTO leads 
-       (name, phone, email, date, type, gender, specific_plan, location, employment_type, annual_income, education, smoker, members, vehicle_number, vehicle_type, vehicle_manufacturer, vehicle_model, vehicle_fuel_type, vehicle_condition, vehicle_reg_date, vehicle_pincode) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21) RETURNING *`,
-      [name, phone, email, date, type, gender, specificPlan, location, employmentType, annualIncome, education, smoker, Array.isArray(members) ? members.join(', ') : members, vehicleNumber || null, vehicleType || null, vehicleManufacturer || null, vehicleModel || null, vehicleFuelType || null, vehicleCondition || null, vehicleRegDate || null, vehiclePincode || null]
+       (name, phone, email, date, type, gender, specific_plan, location, employment_type, annual_income, education, smoker, medical_history, life_cover, members, vehicle_number, vehicle_type, vehicle_manufacturer, vehicle_model, vehicle_fuel_type, vehicle_condition, vehicle_reg_date, vehicle_pincode) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23) RETURNING *`,
+      [name, phone, email, date, type, gender, specificPlan, location, employmentType, annualIncome, education, smoker, Array.isArray(medicalHistory) ? medicalHistory.join(', ') : (medicalHistory || null), lifeCover || null, Array.isArray(members) ? members.join(', ') : members, vehicleNumber || null, vehicleType || null, vehicleManufacturer || null, vehicleModel || null, vehicleFuelType || null, vehicleCondition || null, vehicleRegDate || null, vehiclePincode || null]
     );
     
     // Emit real-time event to dashboards
@@ -136,4 +136,17 @@ router.post('/:id/document', upload.single('document'), async (req, res) => {
   }
 });
 
+
+// PUT update lead reminder
+router.put('/:id/reminder', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reminder } = req.body;
+    const result = await db.query('UPDATE leads SET reminder = $1 WHERE id = $2 RETURNING *', [reminder, id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Lead not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 module.exports = router;

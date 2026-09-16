@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
         (category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type, insurer_type) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
        RETURNING *`,
-      [category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type || 'Individual', insurer_type || 'Private']
+      [category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type || 'Individual/Multi Individual', insurer_type || 'Private']
     );
     
     res.status(201).json(result.rows[0]);
@@ -60,7 +60,7 @@ router.put('/:id', async (req, res) => {
        SET category = $1, rank = $2, name = $3, badge = $4, premium = $5, cover = $6, claim_ratio = $7, highlight = $8, plan_type = $9, insurer_type = $10
        WHERE id = $11 
        RETURNING *`,
-      [category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type || 'Individual', insurer_type || 'Private', id]
+      [category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type || 'Individual/Multi Individual', insurer_type || 'Private', id]
     );
 
     if (result.rows.length === 0) {
