@@ -91,7 +91,7 @@ router.put('/:id/status', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
   
-  if (!['Pending', 'Agreed', 'Closed'].includes(status)) {
+  if (!['Pending', 'Contacted', 'Agreed', 'Closed'].includes(status)) {
     return res.status(400).json({ error: 'Invalid status' });
   }
 
@@ -149,4 +149,18 @@ router.put('/:id/reminder', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// DELETE /api/leads/:id
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await db.query('DELETE FROM leads WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Lead not found' });
+    res.json({ message: 'Lead deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting lead:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;
