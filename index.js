@@ -28,6 +28,7 @@ app.use('/api/leads', require('./routes/leads'));
 app.use('/api/calls', require('./routes/calls'));
 app.use('/api/policies', require('./routes/policies'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/claims', require('./routes/claims'));
 app.use('/api/best-plans', require('./routes/bestPlans'));
 app.use('/api/quotes', require('./routes/quotes'));
 app.use('/api/premium-requests', require('./routes/premiumRequests'));
