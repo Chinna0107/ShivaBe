@@ -27,8 +27,15 @@ router.get('/check', async (req, res) => {
   const { phone } = req.query;
   if (!phone) return res.status(400).json({ error: 'phone is required' });
   try {
-    const result = await db.query('SELECT id FROM leads WHERE phone = $1 LIMIT 1', [phone]);
-    res.json({ exists: result.rows.length > 0 });
+    const result = await db.query('SELECT id, phone, name FROM leads WHERE phone = $1 LIMIT 1', [phone]);
+    if (result.rows.length > 0) {
+      const user = result.rows[0];
+      // Generate a session/verification token
+      const token = `lead_tok_${user.id}_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      res.json({ exists: true, token, user: { id: user.id, name: user.name, phone: user.phone } });
+    } else {
+      res.json({ exists: false });
+    }
   } catch (err) {
     console.error('Error checking lead:', err);
     res.status(500).json({ error: 'Internal server error' });
