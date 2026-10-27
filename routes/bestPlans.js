@@ -27,19 +27,19 @@ router.get('/', async (req, res) => {
 // POST a new best plan
 router.post('/', async (req, res) => {
   try {
-    const { category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type, insurer_type } = req.body;
+    const { category, rank, name, company_name, badge, premium, cover, claim_ratio, highlight, plan_type, insurer_type } = req.body;
     
     // Basic validation
-    if (!category || !rank || !name) {
-      return res.status(400).json({ error: 'Category, rank, and name are required' });
+    if (!category || !rank || !name || !company_name || !company_name.trim()) {
+      return res.status(400).json({ error: 'Category, rank, company name, and product name are required' });
     }
 
     const result = await db.query(
       `INSERT INTO best_plans 
-        (category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type, insurer_type) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+        (category, rank, name, company_name, badge, premium, cover, claim_ratio, highlight, plan_type, insurer_type) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
        RETURNING *`,
-      [category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type || 'Individual/Multi Individual', insurer_type || 'Private']
+      [category, rank, name, company_name.trim(), badge, premium, cover, claim_ratio, highlight, plan_type || 'Individual/Multi Individual', insurer_type || 'Private']
     );
     
     res.status(201).json(result.rows[0]);
@@ -53,14 +53,18 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type, insurer_type } = req.body;
+    const { category, rank, name, company_name, badge, premium, cover, claim_ratio, highlight, plan_type, insurer_type } = req.body;
+
+    if (!category || !rank || !name || !company_name || !company_name.trim()) {
+      return res.status(400).json({ error: 'Category, rank, company name, and product name are required' });
+    }
 
     const result = await db.query(
       `UPDATE best_plans 
-       SET category = $1, rank = $2, name = $3, badge = $4, premium = $5, cover = $6, claim_ratio = $7, highlight = $8, plan_type = $9, insurer_type = $10
-       WHERE id = $11 
+       SET category = $1, rank = $2, name = $3, company_name = $4, badge = $5, premium = $6, cover = $7, claim_ratio = $8, highlight = $9, plan_type = $10, insurer_type = $11
+       WHERE id = $12
        RETURNING *`,
-      [category, rank, name, badge, premium, cover, claim_ratio, highlight, plan_type || 'Individual/Multi Individual', insurer_type || 'Private', id]
+      [category, rank, name, company_name.trim(), badge, premium, cover, claim_ratio, highlight, plan_type, insurer_type, id]
     );
 
     if (result.rows.length === 0) {

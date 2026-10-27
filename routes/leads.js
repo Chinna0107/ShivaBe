@@ -128,6 +128,7 @@ router.put('/:id/status', async (req, res) => {
 // POST /api/leads/:id/document
 router.post('/:id/document', upload.single('document'), async (req, res) => {
   const { id } = req.params;
+  const { company_name } = req.body;
   
   if (!req.file) {
     return res.status(400).json({ error: 'No document uploaded' });
@@ -135,10 +136,18 @@ router.post('/:id/document', upload.single('document'), async (req, res) => {
 
   try {
     const documentUrl = req.file.path;
-    const result = await db.query(
-      'UPDATE leads SET policy_document_url = $1 WHERE id = $2 RETURNING *',
-      [documentUrl, id]
-    );
+    let result;
+    if (company_name !== undefined) {
+      result = await db.query(
+        'UPDATE leads SET policy_document_url = $1, policy_company_name = $2 WHERE id = $3 RETURNING *',
+        [documentUrl, company_name || null, id]
+      );
+    } else {
+      result = await db.query(
+        'UPDATE leads SET policy_document_url = $1 WHERE id = $2 RETURNING *',
+        [documentUrl, id]
+      );
+    }
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Lead not found' });
@@ -147,6 +156,23 @@ router.post('/:id/document', upload.single('document'), async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     console.error('Error uploading document:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT /api/leads/:id/company
+router.put('/:id/company', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { policy_company_name } = req.body;
+    const result = await db.query(
+      'UPDATE leads SET policy_company_name = $1 WHERE id = $2 RETURNING *',
+      [policy_company_name || null, id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Lead not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating company name:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
